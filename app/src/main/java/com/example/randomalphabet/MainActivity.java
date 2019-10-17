@@ -1,10 +1,13 @@
 package com.example.randomalphabet;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -45,13 +48,46 @@ public class MainActivity extends AppCompatActivity {
 //        list.add(new webviewFragment());
 
         viewPager = findViewById(R.id.view_pager);
+        viewPager.setOffscreenPageLimit(50);
         pagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(),list);
         viewPager.setAdapter(pagerAdapter);
+
+        //just in case onRestoreInstanceState not working
+        if (savedInstanceState != null) {
+            savedState(savedInstanceState);
+        }
 
         nextBtnClicked();
         backBtnClicked();
 
         pageChange();
+    }
+
+    private void savedState(Bundle savedInstanceState) {
+        pagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(),list);
+
+        if (savedInstanceState != null) {
+            Parcelable parcelable = savedInstanceState.getParcelable("Adapter");
+            pagerAdapter.restoreState(parcelable, getClassLoader());
+        }
+
+        viewPager.setAdapter(pagerAdapter);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        Parcelable parcelable = savedInstanceState.getParcelable("Adapter");
+        pagerAdapter.restoreState(parcelable, getClassLoader());
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        Parcelable parcelable = pagerAdapter.saveState();
+        outState.putParcelable("Adapter", parcelable);
     }
 
     @Override
@@ -74,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "CurrentItem:" + viewPager.getCurrentItem(),Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, "CurrentItem:" + viewPager.getCurrentItem(),Toast.LENGTH_SHORT).show();
                 viewPager.setCurrentItem(viewPager.getCurrentItem() + 1, true);
             }
         });
